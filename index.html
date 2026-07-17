@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MASTER MUSIC · Reproductor</title>
+
+  <!-- PWA: instalable en celular y PC -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0a0e2e" />
+  <meta name="description" content="Reproductor de música retro-futurista con letras sincronizadas." />
+  <!-- iOS / Safari -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MASTER MUSIC" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- CRT scanlines + vignette -->
+  <div class="crt"></div>
+  <div class="scanlines"></div>
+
+  <div class="window">
+    <!-- TITLE BAR -->
+    <div class="title-bar">     <div class="title-left">
+        <div class="pixel-icon">
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+        <span class="title-text">MASTER MUSIC</span>
+      </div>
+      <div class="title-right">
+        <button class="tb-btn" title="Minimizar">_</button>
+        <button class="tb-btn" title="Maximizar">▢</button>
+        <button class="tb-btn tb-close" title="Cerrar">✕</button>
+        
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT GRID -->
+    <div class="main-grid">
+
+      <!-- LEFT: COVER + INFO + VISUALIZER -->
+      <section class="left-panel">
+
+        <div class="cover-frame">
+          <button class="vinyl-toggle" id="vinylToggle" title="Modo vinilo (carátula giratoria)">◉</button>
+          <div class="cover-inner" id="coverInner">
+            <div class="cover-art" id="coverArt">
+              <span class="cover-placeholder">♪</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="track-info">
+          <div class="ti-title" id="npTitle">Sin canción</div>
+          <div class="ti-artist" id="npArtist">— ningún artista —</div>
+          <div class="ti-album" id="npAlbum"></div>
+        </div>
+
+        <div class="visualizer-frame">
+          <canvas id="visualizer"></canvas>
+          <button class="viz-sync" id="vizSyncBtn"
+            title="Sincronizar el espectro con el audio del sistema — ideal para Spotify. Comparte tu pantalla marcando 'compartir audio del sistema'.">◈ sync</button>
+        </div>
+
+      </section>
+
+      <!-- RIGHT: LYRICS -->
+      <section class="right-panel">
+        <div class="tab-bar">
+          <button class="tab active" data-tab="lyrics">lyrics</button>
+          <button class="tab icon-tab" data-tab="search" title="Buscar en Spotify (F)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <circle cx="10.5" cy="10.5" r="5.5"/>
+              <line x1="15" y1="15" x2="20.5" y2="20.5"/>
+            </svg>
+          </button>
+          <button class="tab icon-tab" data-tab="queue" title="Cola — a continuación (Q)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <line x1="4" y1="6" x2="20" y2="6"/>
+              <line x1="4" y1="12" x2="20" y2="12"/>
+              <line x1="4" y1="18" x2="11" y2="18"/>
+              <path d="M15.5 15.2v6.2l5.2-3.1z" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+          <span class="tab-right">
+            <button class="tab icon-tab tab-gear" data-tab="settings" title="Configuración (S)">
+              <svg viewBox="0 0 24 24">
+                <path fill="currentColor" d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.62l-1.92-3.32a.49.49 0 0 0-.6-.22l-2.39.96a7.06 7.06 0 0 0-1.63-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.63.94l-2.39-.96a.49.49 0 0 0-.6.22L2.69 8.86a.49.49 0 0 0 .12.62l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.62l1.92 3.32c.12.21.37.3.6.22l2.39-.96c.5.37 1.04.7 1.63.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.63-.94l2.39.96c.23.08.48 0 .6-.22l1.92-3.32a.49.49 0 0 0-.12-.62l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/>
+              </svg>
+            </button>
+            <span class="status-dot"><span class="dot"></span> online</span>
+          </span>
+        </div>
+
+        <!-- LYRICS TAB -->
+        <div class="tab-content active" id="tab-lyrics">
+          <!-- Ambiente: esquinas pixel que laten + notas flotantes (decorativo) -->
+          <div class="lyrics-ambient" id="lyricsAmbient" aria-hidden="true">
+            <span class="la-corner tl"></span><span class="la-corner tr"></span>
+            <span class="la-corner bl"></span><span class="la-corner br"></span>
+          </div>
+          <div class="lyrics-body" id="lyricsBody">
+            <p class="lyrics-empty">▒ Reproduce una canción para ver la letra ▒</p>
+          </div>
+          <!-- MODO EDIT: una sola línea gigante con efectos, estilo edit de TikTok -->
+          <div class="lyrics-edit" id="lyricsEdit" hidden></div>
+        </div>
+
+        <!-- SEARCH TAB (buscar en spotify) -->
+        <div class="tab-content" id="tab-search">
+          <p class="lyrics-empty" id="searchHint">▒ conecta spotify en <b>config ⚙</b> para buscar canciones ▒</p>
+          <div class="sp-search-block" id="spotifySearchBlock" hidden>
+            <div class="sp-search-head">♫ buscar en spotify</div>
+            <div class="search-row">
+              <span class="prompt">♫</span>
+              <input type="text" id="spotifySearchInput" placeholder="canción o artista..." class="retro-input" />
+            </div>
+            <ul class="track-list sp-results" id="spotifyResults"></ul>
+          </div>
+        </div>
+
+        <!-- QUEUE TAB (a continuación) -->
+        <div class="tab-content" id="tab-queue">
+          <div class="sp-search-head">♫ a continuación</div>
+          <ul class="track-list" id="queueList"></ul>
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div class="tab-content" id="tab-settings">
+          <div class="settings-block">
+            <h3>~ música / spotify ~</h3>
+            <div class="library-actions">
+              <label class="retro-btn" for="fileInput">
+                <span class="bracket">[</span> importar música <span class="bracket">]</span>
+              </label>
+              <input type="file" id="fileInput" accept="audio/*" multiple hidden />
+              <button class="retro-btn" id="spotifyConnectBtn">
+                <span class="bracket">[</span> conectar spotify <span class="bracket">]</span>
+              </button>
+            </div>
+            <ul class="track-list" id="trackList"></ul>
+          </div>
+
+          <div class="settings-block">
+            <h3>~ color de acento ~</h3>
+            <div class="color-swatches">
+              <button class="swatch swatch-auto" id="accentAuto" title="auto (color de la carátula de cada canción)">A</button>
+              <button class="swatch" data-color="cyan" style="--c:#5ce1e6"></button>
+              <button class="swatch" data-color="green" style="--c:#22ff77"></button>
+              <button class="swatch" data-color="pink" style="--c:#ff77c8"></button>
+              <button class="swatch" data-color="orange" style="--c:#ff9b5c"></button>
+              <button class="swatch" data-color="purple" style="--c:#b58cff"></button>
+              <button class="swatch" data-color="red" style="--c:#ff5c5c"></button>
+              <button class="swatch" data-color="yellow" style="--c:#ffe45c"></button>
+              <button class="swatch" data-color="white" style="--c:#ffffff"></button>
+              <label class="swatch custom-swatch" title="elige cualquier color">
+                <span class="custom-label">+</span>
+                <input type="color" id="customAccent" value="#5ce1e6">
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-block">
+            <h3>~ fondo ~</h3>
+            <div class="bg-options">
+              <label class="radio-row">
+                <input type="radio" name="bgMode" value="auto" id="bgAuto" checked />
+                <span>auto (color de la carátula)</span>
+              </label>
+              <label class="radio-row">
+                <input type="radio" name="bgMode" value="manual" id="bgManual" />
+                <span>color manual ↓</span>
+              </label>
+            </div>
+            <div class="color-swatches" style="margin-top:10px">
+              <button class="swatch bg-preset" data-bg="#000000" style="--c:#000000" title="negro"></button>
+              <button class="swatch bg-preset" data-bg="#0a0e2e" style="--c:#0a0e2e" title="azul noche"></button>
+              <button class="swatch bg-preset" data-bg="#1a0033" style="--c:#1a0033" title="púrpura oscuro"></button>
+              <button class="swatch bg-preset" data-bg="#330011" style="--c:#330011" title="vino"></button>
+              <button class="swatch bg-preset" data-bg="#003322" style="--c:#003322" title="verde profundo"></button>
+              <button class="swatch bg-preset" data-bg="#332200" style="--c:#332200" title="ámbar"></button>
+              <button class="swatch bg-preset" data-bg="#1a1a1a" style="--c:#1a1a1a" title="gris oscuro"></button>
+              <button class="swatch bg-preset" data-bg="#ffffff" style="--c:#ffffff" title="blanco"></button>
+              <label class="swatch custom-swatch" title="elige cualquier color de fondo">
+                <span class="custom-label">+</span>
+                <input type="color" id="customBg" value="#0a0e2e">
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-block">
+            <h3>~ color del texto / lyrics ~</h3>
+            <div class="color-swatches">
+              <button class="swatch text-preset" data-text="#e8ecff" style="--c:#e8ecff" title="blanco azulado"></button>
+              <button class="swatch text-preset" data-text="#ffffff" style="--c:#ffffff" title="blanco puro"></button>
+              <button class="swatch text-preset" data-text="#ffe45c" style="--c:#ffe45c" title="amarillo"></button>
+              <button class="swatch text-preset" data-text="#22ff77" style="--c:#22ff77" title="verde fósforo"></button>
+              <button class="swatch text-preset" data-text="#ff77c8" style="--c:#ff77c8" title="rosa"></button>
+              <button class="swatch text-preset" data-text="#000000" style="--c:#000000" title="negro"></button>
+              <label class="swatch custom-swatch" title="color de texto personalizado">
+                <span class="custom-label">+</span>
+                <input type="color" id="customText" value="#e8ecff">
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-block">
+            <h3>~ sincronización de letras ~</h3>
+            <div class="offset-control">
+              <button class="retro-btn small" id="offsetMinus">−0.25s</button>
+              <div class="offset-display">
+                <span id="offsetValue">0.00s</span>
+                <input type="range" id="offsetSlider" min="-5" max="5" step="0.1" value="0" />
+              </div>
+              <button class="retro-btn small" id="offsetPlus">+0.25s</button>
+              <button class="retro-btn small" id="offsetReset">⟲</button>
+            </div>
+            <p style="font-size:13px;color:var(--text-muted);line-height:1.4;margin-top:6px">
+              ajusta si la letra va adelantada o atrasada. positivo = letra se adelanta.
+              el ajuste se guarda por canción.
+            </p>
+          </div>
+
+          <div class="settings-block">
+            <button class="retro-btn" id="resetColors">
+              <span class="bracket">[</span> restablecer colores <span class="bracket">]</span>
+            </button>
+          </div>
+          <div class="settings-block">
+            <h3>~ acerca ~</h3>
+            <p class="about-text">MASTER MUSIC v1.0<br>retro-futuristic music player<br>· · ·</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PLAYBACK BAR -->
+    <div class="playback-bar">
+      <div class="progress-row">
+        <span class="time" id="timeCurrent">0:00</span>
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-bg">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-thumb" id="progressThumb"></div>
+          </div>
+        </div>
+        <span class="time" id="timeTotal">0:00</span>
+      </div>
+
+      <div class="controls-row">
+        <button class="ctrl-btn" id="shuffleBtn" title="Aleatorio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 3 21 3 21 8"/>
+            <line x1="4" y1="20" x2="21" y2="3"/>
+            <polyline points="21 16 21 21 16 21"/>
+            <line x1="15" y1="15" x2="21" y2="21"/>
+            <line x1="4" y1="4" x2="9" y2="9"/>
+          </svg>
+        </button>
+        <button class="ctrl-btn" id="prevBtn" title="Anterior">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <polygon points="19 20 9 12 19 4 19 20"/>
+            <rect x="4" y="4" width="2.6" height="16"/>
+          </svg>
+        </button>
+        <button class="ctrl-btn play-btn" id="playBtn" title="Play/Pausa">
+          <span id="playIcon">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <polygon points="7 4 20 12 7 20 7 4"/>
+            </svg>
+          </span>
+          <span id="pauseIcon" hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <rect x="6" y="4" width="4" height="16"/>
+              <rect x="14" y="4" width="4" height="16"/>
+            </svg>
+          </span>
+        </button>
+        <button class="ctrl-btn" id="nextBtn" title="Siguiente">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <polygon points="5 4 15 12 5 20 5 4"/>
+            <rect x="17.4" y="4" width="2.6" height="16"/>
+          </svg>
+        </button>
+        <button class="ctrl-btn" id="repeatBtn" title="Repetir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 1 21 5 17 9"/>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+            <polyline points="7 23 3 19 7 15"/>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
+          <span class="rep-badge">1</span>
+        </button>
+
+        <!-- VOLUMEN: icono discreto, la barra se despliega al pasar el mouse -->
+        <div class="volume-ctl" id="volumeCtl">
+          <span class="vol-pct" id="volPct">70</span>
+          <div class="volume-bar" id="volumeBar" title="Volumen">
+            <div class="volume-bg">
+              <div class="volume-fill" id="volumeFill"></div>
+              <div class="volume-thumb" id="volumeThumb"></div>
+            </div>
+          </div>
+          <button class="ctrl-btn vol-btn" id="volBtn" title="Silenciar (M)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor" stroke="none"/>
+              <path class="vol-wave1" d="M15 9.7a3.4 3.4 0 0 1 0 4.6"/>
+              <path class="vol-wave2" d="M17.6 7.2a7 7 0 0 1 0 9.6"/>
+              <g class="vol-x">
+                <line x1="15.5" y1="9.5" x2="20.5" y2="14.5"/>
+                <line x1="20.5" y1="9.5" x2="15.5" y2="14.5"/>
+              </g>
+            </svg>
+          </button>
+          <button class="ctrl-btn vol-btn side-btn" id="lyricsModeBtn" title="Modo edit (letra animada)">✦</button>
+          <button class="ctrl-btn vol-btn side-btn" id="cinemaBtn" title="Modo cine: letra animada + carátula girando (Esc para salir)">⛶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <span class="status-left">
+        <span class="mini-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        <span id="statusText">▣ listo</span>
+      </span>
+      <span class="filler" aria-hidden="true"></span>
+      <span id="clock">--:--</span>
+    </div>
+  </div>
+
+  <!-- MODO CINE: letra gigante sobre la carátula difuminada (opcional) -->
+  <div class="cinema" id="cinema" hidden>
+    <div class="cinema-bg" id="cinemaBg"></div>
+    <div class="cinema-veil"></div>
+    <button class="cinema-close" id="cinemaClose" title="Salir del modo cine (Esc)">✕</button>
+    <div class="cinema-head">
+      <div class="cinema-cover" id="cinemaCover"></div>
+      <div class="cinema-meta">
+        <div class="cinema-title" id="cinemaTitle"></div>
+        <div class="cinema-artist" id="cinemaArtist"></div>
+      </div>
+    </div>
+    <div class="cinema-body">
+      <div class="cinema-disc" id="cinemaDisc"></div>
+      <div class="cinema-stage" id="cinemaStage">
+        <!-- aquí se muda #lyricsEdit mientras el cine está abierto -->
+      </div>
+      <div class="cinema-msg" id="cinemaMsg" hidden></div>
+    </div>
+    <!-- Onda de progreso: espectro que baila + porción reproducida en acento -->
+    <canvas class="cinema-wave" id="cinemaWave" title="Clic para saltar a ese punto"></canvas>
+  </div>
+
+  <!-- DROP OVERLAY -->
+  <div class="drop-overlay" id="dropOverlay">
+    <div class="drop-card">
+      <h2>▒▒▒ SUELTA AQUÍ ▒▒▒</h2>
+      <p>mp3 · wav · ogg · flac · m4a</p>
+    </div>
+  </div>
+
+
+  <script src="js/vendor/jsmediatags.min.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/lyrics.js"></script>
+  <script src="js/spotify.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/visualizer.js"></script>
+  <script src="js/seven.js"></script>
+  <script src="js/cinema.js"></script>
+  <script src="js/colors.js"></script>
+
+  <!-- Registro del Service Worker (solo bajo http/https, no file://) -->
+  <script>
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .catch((err) => console.warn('SW no registrado:', err));
+      });
+    }
+  </script>
+</body>
+</html>
